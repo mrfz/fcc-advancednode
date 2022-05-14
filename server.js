@@ -17,9 +17,9 @@ app.use(express.json());
 app.use(express.urlencoded({ extended: true }));
 app.set('view engine', 'pug')
 
-app.route('/').get((req, res) => {
-  res.render('pug', {title: 'Hellooo', message: 'Please login'});
-});
+// app.route('/').get((req, res) => {
+//   res.render('pug', {title: 'Hellooo', message: 'Please login'});
+// });
 myDB(async client => {
   const myDataBase = await client.db('database').collection('users');
   
