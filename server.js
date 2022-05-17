@@ -18,22 +18,35 @@ app.use(express.json());
 app.use(express.urlencoded({ extended: true }));
 app.set('view engine', 'pug')
   
-  app.route('/').get((req, res) => {
-    res.render('pug', {title: 'Hellooo', message: 'Please login'});
-  });
+  // app.route('/').get((req, res) => {
+  //   res.render('pug', {title: 'Hellooo', message: 'Please login'});
+  // });
 myDB(async client => {
   const myDataBase = await client.db('database').collection('users');
   
- // console.log(client);
+
 
   // Be sure to change the title
   app.route('/').get((req, res) => 
-    //Change the response to render the Pug template
     res.render('pug', {
       title: 'Connected to Database',
-      message: 'Please login'
+      message: 'Please login',
+      showLogin: true
     })
   );
+  
+  app.post('/login', 
+          passport.authenticate('local', {failureRedirect: '/'}),
+          function(req,res) {
+            res.redirect('/profile');
+          }
+  );
+  
+  app.get('/profile', 
+          (req,res) => {
+           res.render('/pug/profile')
+          }
+);
 
   app.use(session({
     secret: process.env.SESSION_SECRET,
