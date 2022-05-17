@@ -17,10 +17,16 @@ app.use('/public', express.static(process.cwd() + '/public'));
 app.use(express.json());
 app.use(express.urlencoded({ extended: true }));
 app.set('view engine', 'pug')
-  
-  // app.route('/').get((req, res) => {
-  //   res.render('pug', {title: 'Hellooo', message: 'Please login'});
-  // });
+
+//Middleware function to check is user pass authentication
+function ensureAuthenticated(req, res, next) {
+  if (req.isAuthenticated()) {
+    return next();
+  }
+  res.redirect('/');
+}
+
+
 myDB(async client => {
   const myDataBase = await client.db('database').collection('users');
   
@@ -43,6 +49,7 @@ myDB(async client => {
   );
   
   app.get('/profile', 
+          ensureAuthenticated,
           (req,res) => {
            res.render('/pug/profile')
           }
