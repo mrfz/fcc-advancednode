@@ -14,7 +14,7 @@ require('dotenv').config();
 module.exports = function (app, myDataBase ) {
 
   
-  app.route('/').get((req, res) => 
+  app.get('/',(req, res) => 
     res.render('pug', {
       title: 'Connected to Database',
       message: 'Please login',
@@ -45,8 +45,7 @@ module.exports = function (app, myDataBase ) {
       }
   );
   
-  app.route('/register')
-    .post((req, res, next) => {
+  app.post('/register', (req, res, next) => {
       myDataBase.findOne({ username: req.body.username }, function(err, user) {
         if (err) {
           next(err);
@@ -77,11 +76,11 @@ module.exports = function (app, myDataBase ) {
       }
     );
 
-  app.route('/auth/github').get(passport.authenticate( 'github' ));
+  app.get('/auth/github',passport.authenticate( 'github' ));
 
   app.get('/auth/github/callback',
          passport.authenticate('github', { failureRedirect: '/' }),
-         (req, res, next) => res.redirect('/profile')
+         (req, res) => res.redirect('/profile')
          );
 
   app.use((req, res, next) => {
