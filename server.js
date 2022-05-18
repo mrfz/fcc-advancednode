@@ -11,8 +11,8 @@ const auth = require('./auth.js');
 
 const LocalStrategy = require('passport-local');
 const bcrypt = require('bcrypt');
-let session = require('express-session');
-let passport = require('passport');
+const session = require('express-session');
+const passport = require('passport');
 
 const app = express();
 
@@ -22,7 +22,14 @@ app.use(express.json());
 app.use(express.urlencoded({ extended: true }));
 app.set('view engine', 'pug')
 
-//Middleware function to check is user pass authentication
+  app.use(session({
+    secret: process.env.SESSION_SECRET,
+    resave: true,
+    saveUninitialized: true,
+    cookie: { secure: false }
+  }));
+  app.use(passport.initialize());
+  app.use(passport.session());  
 
 
 
@@ -33,19 +40,6 @@ myDB(async client => {
   auth(app, myDataBase);
 
 
-  // Be sure to change the title
-
-
-
-  
-
-
-
-
-
-  
-  
-    // Be sure to add this...
 }).catch(e => {
   app.route('/').get((req, res) => {
     res.render('pug', { title: e, message: 'Unable to login' });

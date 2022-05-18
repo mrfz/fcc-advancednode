@@ -1,5 +1,6 @@
 let session = require('express-session');
 let passport = require('passport');
+const ObjectID = require('mongodb').ObjectID;
 const LocalStrategy = require('passport-local');
 const GitHubStrategy = require('passport-github').Strategy;
 const bcrypt = require('bcrypt');
@@ -7,14 +8,7 @@ require('dotenv').config();
 
 module.exports = (app, myDataBase) => {
 
-    app.use(session({
-    secret: process.env.SESSION_SECRET,
-    resave: true,
-    saveUninitialized: true,
-    cookie: { secure: false }
-  }));
-  app.use(passport.initialize());
-  app.use(passport.session());  
+
 
   // serializing user using passport
   passport.serializeUser((user, done) => {
@@ -30,6 +24,7 @@ module.exports = (app, myDataBase) => {
     //Using Local Strategy
     passport.use(new LocalStrategy(
       function(username, password, done) {
+        console.log("local strategy started");
         myDataBase.findOne({ username: username }, function (err, user) {
           console.log('User '+ username +' attempted to log in.');
           if (err) { return done(err); }
@@ -47,7 +42,7 @@ module.exports = (app, myDataBase) => {
       clientSecret: process.env.GITHUB_CLIENT_SECRET,
       callbackURL: "https://fcc-advancednode.mrfz.repl.co/auth/github/callback"
       },
-      function GitHubAuthProcess(accessToken, refreshToken, profile, cb) {
+      function (accessToken, refreshToken, profile, cb) {
         console.log(profile);
         myDataBase.findOneAndUpdate(
           { id: profile.id },
