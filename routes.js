@@ -27,14 +27,14 @@ module.exports = function (app, myDataBase ) {
   app.post('/login', 
           passport.authenticate('local', {failureRedirect: '/'}),
           function(req,res) {
-            res.redirect('/profile', {username: req.user.username});
+            res.redirect('/profile');
           }
   );
   
   app.get('/profile', 
           ensureAuthenticated,
           (req,res) => {
-           res.render(process.cwd() + '/views/pug/profile');
+           res.render(process.cwd() + '/views/pug/profile', {username:req.user.username});
           }
 );
 
