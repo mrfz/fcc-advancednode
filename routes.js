@@ -4,17 +4,17 @@ const bcrypt = require('bcrypt');
 
 require('dotenv').config();
 
-  function ensureAuthenticated(req, res, next) {
-    if (req.isAuthenticated()) {
-      return next();
-    }
-    res.redirect('/');
+function ensureAuthenticated(req, res, next) {
+  if (req.isAuthenticated()) {
+    return next();
   }
+  res.redirect('/');
+}
 
-module.exports = function (app, myDataBase ) {
+module.exports = function(app, myDataBase) {
 
-  
-  app.get('/',(req, res) => 
+  // index page render
+  app.get('/', (req, res) =>
     res.render('pug', {
       title: 'Connected to Database',
       message: 'Please login',
@@ -23,69 +23,76 @@ module.exports = function (app, myDataBase ) {
       showSocialAuth: true
     })
   );
-  
-  app.post('/login', 
-          passport.authenticate('local', {failureRedirect: '/'}),
-          function(req,res) {
-            res.redirect('/profile');
-          }
+
+// local authentication route
+  app.post('/login',
+    passport.authenticate('local', { failureRedirect: '/' }),
+    function(req, res) {
+      res.redirect('/profile');
+    }
   );
-  
-  app.get('/profile', 
-          ensureAuthenticated,
-          (req,res) => {
-           res.render(process.cwd() + '/views/pug/profile', {username:req.user.username});
-          }
-);
+
+  //route to profile with middleware to check if user had been authenticated earlier
+  app.get('/profile',
+    ensureAuthenticated,
+    (req, res) => {
+      res.render(process.cwd() + '/views/pug/profile', { username: req.user.username });
+    }
+  );
 
   app.get('/logout',
-      (req, res) => {
-        req.logout();
+    (req, res) => {
+      req.logout();
+      res.redirect('/');
+    }
+  );
+
+// registration with hashing user password by 
+  app.post('/register', (req, res, next) => {
+    myDataBase.findOne({ username: req.body.username }, function(err, user) {
+      if (err) {
+        next(err);
+      } else if (user) {
         res.redirect('/');
+      } else {
+        const hash = bcrypt.hashSync(req.body.password, 12);
+        myDataBase.insertOne({
+          username: req.body.username,
+          password: hash
+        },
+          (err, doc) => {
+            if (err) {
+              res.redirect('/');
+            } else {
+              // The inserted document is held within
+              // the ops property of the doc
+              next(null, doc.ops[0]);
+            }
+          }
+        )
       }
+    })
+  },
+    passport.authenticate('local', { failureRedirect: '/' }),
+    (req, res, next) => {
+      res.redirect('/profile');
+    }
   );
   
-  app.post('/register', (req, res, next) => {
-      myDataBase.findOne({ username: req.body.username }, function(err, user) {
-        if (err) {
-          next(err);
-        } else if (user) {
-          res.redirect('/');
-        } else {
-          const hash = bcrypt.hashSync(req.body.password, 12);
-          myDataBase.insertOne({
-            username: req.body.username,
-            password: hash
-          },
-            (err, doc) => {
-              if (err) {
-                res.redirect('/');
-              } else {
-                // The inserted document is held within
-                // the ops property of the doc
-                next(null, doc.ops[0]);
-              }
-            }
-          )
-        }
-      })
-    },
-      passport.authenticate('local', { failureRedirect: '/' }),
-      (req, res, next) => {
-        res.redirect('/profile');
-      }
-    );
+// github startegy routes, first for call, second for callback. for now i cant see user name in profile using this strategy
 
-  app.get('/auth/github',passport.authenticate( 'github' ));
+  app.get('/auth/github', passport.authenticate('github'));
 
   app.get('/auth/github/callback',
-         passport.authenticate('github', { failureRedirect: '/' }),
-         (req, res) => res.redirect('/profile')
-         );
+    passport.authenticate('github', { failureRedirect: '/' }),
+    (req, res) => res.redirect('/profile')
+  );
 
+
+// 404 route
   app.use((req, res, next) => {
-          res.status(404)
-            .type('text')
-            .send('Page Not Found');
-          });
+    res.status(404)
+      .type('text')
+      .send('Page Not Found');
+  });
 }
