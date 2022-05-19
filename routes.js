@@ -28,7 +28,7 @@ module.exports = function(app, myDataBase) {
   app.post('/login',
     passport.authenticate('local', { failureRedirect: '/' }),
     function(req, res) {
-      res.redirect('/profile');
+      res.redirect('/chat'); //trying to get straight to chat 
     }
   );
 
@@ -85,9 +85,15 @@ module.exports = function(app, myDataBase) {
 
   app.get('/auth/github/callback',
     passport.authenticate('github', { failureRedirect: '/' }),
-    (req, res) => res.redirect('/profile')
+    req.session.user_id = req.user.id
+    (req, res) => res.redirect('/chat')
   );
 
+  //route to chat page
+  app.get('/chat',
+         ensureAuthenticated,
+         (req,res) => res.render(process.cwd() + '/views/pug/chat', { username: req.user })
+  );
 
 // 404 route
   app.use((req, res, next) => {
