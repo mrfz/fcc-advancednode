@@ -10,3 +10,5 @@ $(document).ready(function () {
     return false; // prevent form submit from refreshing page
   });
 });
+// send number of connected users to client console
+socket.on('user count', (data) => console.log(data))
