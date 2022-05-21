@@ -47,7 +47,7 @@ module.exports = function(app, myDataBase) {
     }
   );
 
-// registration with hashing user password by 
+// registration with hashing user password by bcrypt
   app.post('/register', (req, res, next) => {
     myDataBase.findOne({ username: req.body.username }, function(err, user) {
       if (err) {
@@ -85,8 +85,7 @@ module.exports = function(app, myDataBase) {
 
   app.get('/auth/github/callback',
     passport.authenticate('github', { failureRedirect: '/' }),
-    req.session.user_id = req.user.id
-    (req, res) => res.redirect('/chat')
+    (req, res) => {req.session.user_id = req.user.id; res.redirect('/chat')}
   );
 
   //route to chat page
