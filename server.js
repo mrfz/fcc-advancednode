@@ -80,9 +80,13 @@ myDB(async client => {
   io.on('connection', socket => {
     console.log('user ' + socket.request.user.name + ' connected');
     ++currentUsers;
-    io.emit('user count', currentUsers);
+    io.emit('user', {
+      name: socket.request.user.name,
+      currentUsers,
+      connected: true
+    });
 
-    socket.on('disconnect', () => {--currentUsers; console.log('User disconneted')})
+    socket.on('disconnect', () => {--currentUsers; console.log('User disconneted'); })
     
     
   });
