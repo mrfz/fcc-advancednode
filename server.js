@@ -21,9 +21,9 @@ const io = require('socket.io')(http);
 
 const passportSocketIo = require('passport.socketio');
 const MongoStore = require('connect-mongo')(session);
-const cookieParser= require('cookie-parser');
+const cookieParser = require('cookie-parser');
 const URI = process.env.MONGO_URI;
-const store = new MongoStore({ url: URI});
+const store = new MongoStore({ url: URI });
 
 fccTesting(app); //For FCC testing purposes
 app.use('/public', express.static(process.cwd() + '/public'));
@@ -40,19 +40,7 @@ app.use(session({
   cookie: { secure: false }
 }));
 app.use(passport.initialize());
-app.use(passport.session());  
-
-function onAuthorizeSuccess(data, accept) {
-  console.log('successful connection to socket.io');
-
-  accept(null, true);
-}
-
-function onAuthorizeFail(data, message, error, accept) {
-  if (error) throw new Error(message);
-  console.log('failed connection to socket.io:', message);
-  accept(null, false);
-}
+app.use(passport.session());
 
 //creating session with socketIO
 io.use(
@@ -86,16 +74,43 @@ myDB(async client => {
       connected: true
     });
 
-    socket.on('disconnect', () => {--currentUsers; console.log('User disconneted'); })
-    
-    
+    socket.on('disconnect', () => {
+      --currentUsers;
+      io.emit('user', {
+        name: socket.request.user.name,
+        currentUsers,
+        connected: true
+      });
+      console.log('User disconneted');
+    })
+socket.on('chat message', (message) => io.emit('chat message', { 
+name: socket.request.user.name, 
+message: message })
+);
+
+
+
   });
 
+  
 }).catch(e => {
   app.route('/').get((req, res) => {
     res.render('pug', { title: e, message: 'Unable to login' });
   });
 });
+
+
+function onAuthorizeSuccess(data, accept) {
+  console.log('successful connection to socket.io');
+
+  accept(null, true);
+}
+
+function onAuthorizeFail(data, message, error, accept) {
+  if (error) throw new Error(message);
+  console.log('failed connection to socket.io:', message);
+  accept(null, false);
+}
 
 
 

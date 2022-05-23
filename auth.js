@@ -54,6 +54,7 @@ module.exports = (app, myDataBase) => {
         {
           $setOnInsert: {
             id: profile.id,
+
             name: profile.displayName || 'John Doe',
             photo: profile.photos[0].value || '',
             email: Array.isArray(profile.emails)
